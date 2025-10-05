@@ -26,3 +26,6 @@ yarn-error.log*
 # uploads
 files/avatars
 files/issues
+
+.env
+node_modules/
