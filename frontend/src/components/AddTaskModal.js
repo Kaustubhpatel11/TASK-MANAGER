@@ -2,7 +2,7 @@ import React, { Fragment, useEffect, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import BtnPrimary from './BtnPrimary'
 import BtnSecondary from './BtnSecondary'
-import axios from 'axios'
+import API from "../api" // <- updated import
 import toast from 'react-hot-toast'
 
 const AddTaskModal = ({ isAddTaskModalOpen, setAddTaskModal, projectId = null, taskId = null, edit = false, refreshData }) => {
@@ -12,7 +12,7 @@ const AddTaskModal = ({ isAddTaskModalOpen, setAddTaskModal, projectId = null, t
 
     useEffect(() => {
         if (edit && isAddTaskModalOpen) {
-            axios.get(`http://localhost:9000/project/${projectId}/task/${taskId}`)
+            API.get(`/project/${projectId}/task/${taskId}`) // <- only endpoint path
                 .then((res) => {
                     setTitle(res.data[0].task[0].title)
                     setDesc(res.data[0].task[0].description)
@@ -22,12 +22,12 @@ const AddTaskModal = ({ isAddTaskModalOpen, setAddTaskModal, projectId = null, t
                 })
             console.log('edit function call')
         }
-    }, [isAddTaskModalOpen]);
+    }, [isAddTaskModalOpen, edit, projectId, taskId]);
 
     const handleSubmit = (e) => {
         e.preventDefault()
         if (!edit) {
-            axios.post(`http://localhost:9000/project/${projectId}/task`, { title, description: desc })
+            API.post(`/project/${projectId}/task`, { title, description: desc })
                 .then((res) => {
                     setAddTaskModal(false)
                     toast.success('Task created successfully')
@@ -35,14 +35,14 @@ const AddTaskModal = ({ isAddTaskModalOpen, setAddTaskModal, projectId = null, t
                     setDesc('')
                 })
                 .catch((error) => {
-                    if (error.response.status === 422) {
+                    if (error.response?.status === 422) {
                         toast.error(error.response.data.details[0].message)
                     } else {
                         toast.error('Something went wrong')
                     }
                 })
         } else {
-            axios.put(`http://localhost:9000/project/${projectId}/task/${taskId}`, { title, description: desc })
+            API.put(`/project/${projectId}/task/${taskId}`, { title, description: desc })
                 .then((res) => {
                     setAddTaskModal(false)
                     toast.success('Task is updated')
@@ -51,7 +51,7 @@ const AddTaskModal = ({ isAddTaskModalOpen, setAddTaskModal, projectId = null, t
                     setDesc('')
                 })
                 .catch((error) => {
-                    if (error.response.status === 422) {
+                    if (error.response?.status === 422) {
                         toast.error(error.response.data.details[0].message)
                     } else {
                         toast.error('Something went wrong')
@@ -76,7 +76,6 @@ const AddTaskModal = ({ isAddTaskModalOpen, setAddTaskModal, projectId = null, t
                         <div className="fixed inset-0 bg-black/30" />
                     </Transition.Child>
                     <div className="fixed inset-0 flex items-center justify-center p-4 w-screen h-screen">
-                        {/* <div className="fixed inset-0 "> */}
                         <Transition.Child
                             as={Fragment}
                             enter="ease-out duration-300"

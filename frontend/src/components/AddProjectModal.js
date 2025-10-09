@@ -2,7 +2,7 @@ import React, { Fragment, memo, useEffect, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import BtnPrimary from './BtnPrimary'
 import BtnSecondary from './BtnSecondary'
-import axios from "axios"
+import API from "../api" // <- updated to use your central API instance
 import toast from 'react-hot-toast'
 
 const AddProjectModal = ({ isModalOpen, closeModal, edit = false, id = null }) => {
@@ -12,7 +12,7 @@ const AddProjectModal = ({ isModalOpen, closeModal, edit = false, id = null }) =
 
     useEffect(() => {
         if (edit && isModalOpen) {
-            axios.get(`http://localhost:9000/project/${id}`)
+            API.get(`/project/${id}`) // <- only the endpoint path
                 .then((res) => {
                     setTitle(res.data[0].title)
                     setDesc(res.data[0].description)
@@ -21,13 +21,12 @@ const AddProjectModal = ({ isModalOpen, closeModal, edit = false, id = null }) =
                     toast.error('Something went wrong')
                 })
         }
-    }, [isModalOpen]);
-
+    }, [isModalOpen, edit, id]);
 
     const handleSubmit = (e) => {
         e.preventDefault()
         if (!edit) {
-            axios.post('http://localhost:9000/project/', { title, description: desc })
+            API.post(`/project/`, { title, description: desc })
                 .then((res) => {
                     closeModal()
                     const customEvent = new CustomEvent('projectUpdate', { detail: { ...res.data } });
@@ -37,14 +36,14 @@ const AddProjectModal = ({ isModalOpen, closeModal, edit = false, id = null }) =
                     setDesc('')
                 })
                 .catch((error) => {
-                    if (error.response.status === 422) {
+                    if (error.response?.status === 422) {
                         toast.error(error.response.data.details[0].message)
                     } else {
                         toast.error('Something went wrong')
                     }
                 })
         } else {
-            axios.put(`http://localhost:9000/project/${id}`, { title, description: desc })
+            API.put(`/project/${id}`, { title, description: desc })
                 .then((res) => {
                     closeModal()
                     const customEvent = new CustomEvent('projectUpdate', { detail: { ...res.data } });
@@ -54,14 +53,13 @@ const AddProjectModal = ({ isModalOpen, closeModal, edit = false, id = null }) =
                     setDesc('')
                 })
                 .catch((error) => {
-                    if (error.response.status === 422) {
+                    if (error.response?.status === 422) {
                         toast.error(error.response.data.details[0].message)
                     } else {
                         toast.error('Something went wrong')
                     }
                 })
         }
-
     }
 
     return (
@@ -80,7 +78,6 @@ const AddProjectModal = ({ isModalOpen, closeModal, edit = false, id = null }) =
                         <div className="fixed inset-0 bg-black/30" />
                     </Transition.Child>
                     <div className="fixed inset-0 flex items-center justify-center p-4 w-screen h-screen ">
-                        {/* <div className="fixed inset-0 "> */}
                         <Transition.Child
                             as={Fragment}
                             enter="ease-out duration-300 "
@@ -91,7 +88,6 @@ const AddProjectModal = ({ isModalOpen, closeModal, edit = false, id = null }) =
                             leaveTo="opacity-0 scale-95"
                         >
                             <Dialog.Panel className="rounded-md bg-white w-6/12">
-
                                 <Dialog.Title as='div' className={'bg-white shadow px-6 py-4 rounded-t-md sticky top-0'}>
                                     {edit ? (<h1>Edit Project</h1>) : (<h1>Create Project</h1>)}
                                     <button onClick={() => closeModal()} className=' absolute right-6 top-4 text-gray-500 hover:bg-gray-100 rounded focus:outline-none focus:ring focus:ring-offset-1 focus:ring-indigo-200 '>
@@ -114,10 +110,8 @@ const AddProjectModal = ({ isModalOpen, closeModal, edit = false, id = null }) =
                                         <BtnPrimary>Save</BtnPrimary>
                                     </div>
                                 </form>
-
                             </Dialog.Panel>
                         </Transition.Child>
-
                     </div>
                 </div>
             </Dialog>
